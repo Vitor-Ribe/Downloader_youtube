@@ -29,17 +29,24 @@ while True:
     else:
         break
 
-caminho = os.path.join(os.path.expanduser("~"), "Downloads")    # busca o caminho da pasta Downloads no sistema operacional
+# busca o caminho da pasta Downloads no sistema operacional
+caminho = os.path.join(os.path.expanduser("~"), "Downloads")
+
+# verifica se a pasta "Arquivos" existe, se existir define ela como pasta para salvar os arquivos de saída. Se não, cria ela
+pasta_destino = os.path.join(caminho, "Arquivos")
+if not os.path.exists(pasta_destino):
+    os.makedirs(pasta_destino)
+
 
 if tipo == "video":
     link = input("Digite o link do vídeo que deseja baixar: ")
     yt = YouTube(link)
-    formato_saida(yt, formato, caminho)
+    formato_saida(yt, formato, pasta_destino)
 
 elif tipo == "playlist":
     link = input("Digite o link da playlist que deseja baixar: ")
     p = Playlist(link)
     for video in p.videos:  # loop para baixar todos os vídeos da playlist
-        formato_saida(video, formato, caminho)
+        formato_saida(video, formato, pasta_destino)
 
 print("Download Concluído!")
