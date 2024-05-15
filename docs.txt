@@ -1,0 +1,7 @@
+os.path.join(): Esta função concatena partes de caminhos para criar um caminho completo. Ela é útil porque forma caminhos de forma que sejam válidos em qualquer sistema operacional, tratando adequadamente as diferenças nas representações de caminhos entre sistemas operacionais. Por exemplo, no Windows, os caminhos são separados por \, enquanto no Linux e macOS, são separados por /. os.path.join() lida com essas diferenças automaticamente. No exemplo acima, estamos criando o caminho completo para o diretório de downloads.
+
+os.path.expanduser("~"): Esta função retorna o caminho do diretório home do usuário atual. O ~ representa o diretório home do usuário. Portanto, os.path.expanduser("~") expande ~ para o caminho completo do diretório home do usuário atual.
+
+"Downloads": Este é o nome do diretório que queremos acessar. No exemplo, queremos acessar o diretório "Downloads" dentro do diretório home do usuário.
+
+Em resumo, a linha de código cria o caminho completo para o diretório de downloads padrão do usuário atual, independentemente do sistema operacional em uso. Isso é feito combinando o caminho do diretório home do usuário com o diretório "Downloads" usando os.path.join(). Este caminho é então armazenado na variável caminho_downloads e pode ser usado posteriormente para salvar arquivos ou realizar outras operações relacionadas ao diretório de downloads.
