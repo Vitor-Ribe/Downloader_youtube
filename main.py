@@ -1,65 +1,87 @@
 import os
 import re
 from pytube import YouTube, Playlist
+from tqdm import tqdm
+
+# Variável global para a barra de progresso
+global pbar
 
 
-def limpar_nome(nome_arquivo):  # retira caracteres do nome do arquivo de saída para que não atrapalhe no salvamento
+def limpar_nome(nome_arquivo):
+    """Retira caracteres do nome do arquivo de saída para que não atrapalhe no salvamento"""
     return re.sub(r'[\\/*?:"<>|]', "", nome_arquivo)
 
 
-def formato_saida(vd, frmt, caminho_destino):  # baixa o vídeo no formato escolhido
-    print("Baixando " + vd.title + "...")
+def progresso(stream, chunk, bytes_remaining):
+    """Callback para atualizar a barra de progresso"""
+    global pbar
+    pbar.update(len(chunk))
+
+
+def formato_saida(vd, frmt, caminho_destino):
+    """Baixa o vídeo no formato escolhido"""
+    global pbar
+    titulo = limpar_nome(vd.title)
 
     if frmt == "mp3":
         audio_stream = vd.streams.filter(only_audio=True, file_extension="mp4").order_by('abr').desc().first()
-        audio_stream.download(output_path=caminho_destino, filename=vd.title + ".mp3")
+        pbar = tqdm(total=audio_stream.filesize, unit='B', unit_scale=True, desc=titulo, colour='green')
+        audio_stream.download(output_path=caminho_destino, filename=titulo + ".mp3")
+        pbar.close()
     elif frmt == "mp4":
-        resolucao = vd.streams.filter(progressive=True, file_extension="mp4").order_by('resolution').desc().first()
-        resolucao.download(output_path=caminho_destino, filename=vd.title + ".mp4")
+        video_stream = vd.streams.filter(progressive=True, file_extension="mp4").order_by('resolution').desc().first()
+        pbar = tqdm(total=video_stream.filesize, unit='B', unit_scale=True, desc=titulo, colour='green')
+        video_stream.download(output_path=caminho_destino, filename=titulo + ".mp4")
+        pbar.close()
 
 
 def arquivo_existe(nome_arquivo, extensao, caminho_destino):
+    """Verifica se o arquivo já existe no diretório de destino"""
     nome_completo = nome_arquivo + "." + extensao
     return nome_completo in os.listdir(caminho_destino)
 
 
-# tipo de video que irá baixar
+# Pergunta o tipo de vídeo que será baixado
 while True:
-    tipo = input("O que vc baixará? (playlist ou vídeo): ")
-    if tipo != "playlist" and tipo != "video":
-        print("Opção inválida! escolha uma opção válida!")
+    tipo = input("O que você baixará? (playlist ou vídeo): ")
+    if tipo not in ["playlist", "video"]:
+        print("Opção inválida! Escolha uma opção válida!")
     else:
         break
 
-# formato de saída
+# Pergunta o formato de saída
 while True:
     formato = input("Digite o formato que você deseja baixar (mp3 ou mp4): ")
-    if formato != "mp3" and formato != "mp4":
-        print("Formato inválido! escolha um formato válido!")
+    if formato not in ["mp3", "mp4"]:
+        print("Formato inválido! Escolha um formato válido!")
     else:
         break
 
-# busca o caminho da pasta Downloads no sistema operacional
+# Busca o caminho da pasta Downloads no sistema operacional
 caminho = os.path.join(os.path.expanduser("~"), "Downloads")
 
-# verifica se a pasta "Arquivos" existe, se existir define ela como pasta para salvar os arquivos de saída. Se não, cria ela
+# Verifica se a pasta "Arquivos Downloader" existe; se não, cria ela
 pasta_destino = os.path.join(caminho, "Arquivos Downloader")
 if not os.path.exists(pasta_destino):
     os.makedirs(pasta_destino)
 
 if tipo == "video":
     link = input("Digite o link do vídeo que deseja baixar: ")
+    print("Processando vídeos...")
     yt = YouTube(link)
-    title = limpar_nome(yt.title)  # limpa o titulo de caracteres que podem causar bugs
+    yt.register_on_progress_callback(progresso)
+    title = limpar_nome(yt.title)
     if not arquivo_existe(title, formato, pasta_destino):
         formato_saida(yt, formato, pasta_destino)
 
 elif tipo == "playlist":
     link = input("Digite o link da playlist que deseja baixar: ")
+    print("Processando vídeos...")
     p = Playlist(link)
-    for video in p.videos:  # loop para baixar todos os vídeos da playlist
-        title = limpar_nome(video.title)  # limpa o titulo de caracteres que podem causar bugs
+    for video in p.videos:
+        title = limpar_nome(video.title)
         if not arquivo_existe(title, formato, pasta_destino):
+            video.register_on_progress_callback(progresso)
             formato_saida(video, formato, pasta_destino)
 
-print("Download Concluído!")
+print('Download Concluído!')
