@@ -9,14 +9,18 @@ def limpar_nome(nome_arquivo):  # retira caracteres do nome do arquivo de saída
 
 def formato_saida(vd, frmt, caminho_destino):  # baixa o vídeo no formato escolhido
     print("Baixando " + vd.title + "...")
-    title = limpar_nome(vd.title)   # limpa o titulo de caracteres que podem causar bugs
 
     if frmt == "mp3":
         audio_stream = vd.streams.filter(only_audio=True, file_extension="mp4").order_by('abr').desc().first()
-        audio_stream.download(output_path=caminho_destino, filename=title + ".mp3")
+        audio_stream.download(output_path=caminho_destino, filename=vd.title + ".mp3")
     elif frmt == "mp4":
         resolucao = vd.streams.filter(progressive=True, file_extension="mp4").order_by('resolution').desc().first()
-        resolucao.download(output_path=caminho_destino, filename=title+".mp4")
+        resolucao.download(output_path=caminho_destino, filename=vd.title + ".mp4")
+
+
+def arquivo_existe(nome_arquivo, extensao, caminho_destino):
+    nome_completo = nome_arquivo + "." + extensao
+    return nome_completo in os.listdir(caminho_destino)
 
 
 # tipo de video que irá baixar
@@ -46,12 +50,16 @@ if not os.path.exists(pasta_destino):
 if tipo == "video":
     link = input("Digite o link do vídeo que deseja baixar: ")
     yt = YouTube(link)
-    formato_saida(yt, formato, pasta_destino)
+    title = limpar_nome(yt.title)  # limpa o titulo de caracteres que podem causar bugs
+    if not arquivo_existe(title, formato, pasta_destino):
+        formato_saida(yt, formato, pasta_destino)
 
 elif tipo == "playlist":
     link = input("Digite o link da playlist que deseja baixar: ")
     p = Playlist(link)
     for video in p.videos:  # loop para baixar todos os vídeos da playlist
-        formato_saida(video, formato, pasta_destino)
+        title = limpar_nome(video.title)  # limpa o titulo de caracteres que podem causar bugs
+        if not arquivo_existe(title, formato, pasta_destino):
+            formato_saida(video, formato, pasta_destino)
 
 print("Download Concluído!")
