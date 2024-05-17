@@ -101,3 +101,4 @@ elif tipo == "playlist":
             formato_saida(video, formato, pasta_destino)
 
 print('Download Concluído!')
+input("Pressione Enter para fechar esta janela...")
