@@ -41,6 +41,12 @@ def arquivo_existe(nome_arquivo, extensao, caminho_destino):
     return nome_completo in os.listdir(caminho_destino)
 
 
+def is_youtube_link(link):
+    # Verifica se o URL corresponde ao formato do YouTube
+    youtube_padrao = r'^(https?://)?(www\.)?(youtube\.com|youtu\.?be)/.*$'
+    return bool(re.match(youtube_padrao, link))
+
+
 # Pergunta o tipo de vídeo que será baixado
 while True:
     tipo = input("O que você baixará? (playlist ou vídeo): ")
@@ -66,18 +72,28 @@ if not os.path.exists(pasta_destino):
     os.makedirs(pasta_destino)
 
 if tipo == "video":
-    link = input("Digite o link do vídeo que deseja baixar: ")
+    while True:
+        url = input("Digite o link do vídeo que deseja baixar: ")
+        if not is_youtube_link(url):
+            print("Esse não é um link do Youtube! por favor, digite um link válido!")
+        else:
+            break
     print("Processando vídeos...")
-    yt = YouTube(link)
+    yt = YouTube(url)
     yt.register_on_progress_callback(progresso)
     title = limpar_nome(yt.title)
     if not arquivo_existe(title, formato, pasta_destino):
         formato_saida(yt, formato, pasta_destino)
 
 elif tipo == "playlist":
-    link = input("Digite o link da playlist que deseja baixar: ")
+    while True:
+        url = input("Digite o link da playlist que deseja baixar: ")
+        if not is_youtube_link(url):
+            print("Esse não é um link do Youtube! por favor, digite um link válido!")
+        else:
+            break
     print("Processando vídeos...")
-    p = Playlist(link)
+    p = Playlist(url)
     for video in p.videos:
         title = limpar_nome(video.title)
         if not arquivo_existe(title, formato, pasta_destino):
