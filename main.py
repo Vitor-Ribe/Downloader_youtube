@@ -1,16 +1,22 @@
 import os
+import re
 from pytube import YouTube, Playlist
+
+
+def limpar_nome(nome_arquivo):  # retira caracteres do nome do arquivo de saída para que não atrapalhe no salvamento
+    return re.sub(r'[\\/*?:"<>|]', "", nome_arquivo)
 
 
 def formato_saida(vd, frmt, caminho_destino):  # baixa o vídeo no formato escolhido
     print("Baixando " + vd.title + "...")
+    title = limpar_nome(vd.title)   # limpa o titulo de caracteres que podem causar bugs
 
     if frmt == "mp3":
-        audio_stream = vd.streams.filter(only_audio=True, file_extension="mp4").first()
-        audio_stream.download(output_path=caminho_destino, filename=vd.title + ".mp3")
+        audio_stream = vd.streams.filter(only_audio=True, file_extension="mp4").order_by('abr').desc().first()
+        audio_stream.download(output_path=caminho_destino, filename=title + ".mp3")
     elif frmt == "mp4":
-        resolucao = vd.streams.filter(progressive=True, file_extension="mp4").order_by("resolution").desc().first()
-        resolucao.download(output_path=caminho_destino)
+        resolucao = vd.streams.filter(progressive=True, file_extension="mp4").order_by('resolution').desc().first()
+        resolucao.download(output_path=caminho_destino, filename=title+".mp4")
 
 
 # tipo de video que irá baixar
@@ -33,10 +39,9 @@ while True:
 caminho = os.path.join(os.path.expanduser("~"), "Downloads")
 
 # verifica se a pasta "Arquivos" existe, se existir define ela como pasta para salvar os arquivos de saída. Se não, cria ela
-pasta_destino = os.path.join(caminho, "Arquivos")
+pasta_destino = os.path.join(caminho, "Arquivos Downloader")
 if not os.path.exists(pasta_destino):
     os.makedirs(pasta_destino)
-
 
 if tipo == "video":
     link = input("Digite o link do vídeo que deseja baixar: ")
